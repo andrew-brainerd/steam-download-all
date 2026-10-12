@@ -1,7 +1,6 @@
 local logger     = require("logger")
 local millennium = require("millennium")
 
--- All logic lives in the frontend; the backend only needs to report ready.
 local function on_load()
     logger:info("Loaded with Millennium version " .. millennium.version())
     millennium.ready()

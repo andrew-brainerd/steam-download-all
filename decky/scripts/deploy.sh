@@ -1,12 +1,6 @@
 #!/usr/bin/env bash
-# Copies the built plugin to a Steam Deck over SSH and restarts Decky Loader.
-# Run via `pnpm deploy:deck` from the repo root (it builds first).
-#
-#   DECK_HOST  Deck hostname or IP (default: steamdeck.local)
-#   DECK_USER  SSH user (default: deck)
-#
-# Prompts for the SSH password (unless a key is installed) and then the sudo
-# password, since ~/homebrew/plugins is owned by root.
+# DECK_HOST  Deck hostname or IP (default: steamdeck.local)
+# DECK_USER  SSH user (default: deck)
 set -euo pipefail
 cd "$(dirname "$0")/.."
 

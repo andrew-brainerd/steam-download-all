@@ -1,5 +1,3 @@
-// Builds dist/download-all.exe: bundles the payload, embeds it in the injector, and
-// packs the injector into a Node single executable application (SEA).
 import { execFileSync } from 'node:child_process';
 import { copyFileSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { build } from 'esbuild';
@@ -50,7 +48,6 @@ execFileSync(
 	{ stdio: 'inherit' },
 );
 
-// Switch the PE subsystem from console (3) to GUI (2) so it runs without a window.
 const bin = readFileSync(exe);
 const peOffset = bin.readUInt32LE(0x3c);
 const subsystemOffset = peOffset + 4 + 20 + 68;

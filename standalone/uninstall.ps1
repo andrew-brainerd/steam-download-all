@@ -1,6 +1,3 @@
-# Removes the standalone Download All: stops it, deletes the Startup shortcut and
-# install folder, and turns Steam's remote debugging back off.
-
 $ErrorActionPreference = 'Stop'
 
 $running = Get-Process download-all -ErrorAction SilentlyContinue

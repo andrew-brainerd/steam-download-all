@@ -1,7 +1,3 @@
-// Runs inside Steam's SharedJSContext, injected over the DevTools protocol by
-// injector.ts. Replaces what Millennium provides (webpack lookups, React button)
-// with a small self-contained equivalent.
-
 import { configureDownloads, downloadAll, subscribePending } from '../../shared/downloads';
 import { BUTTON_STYLE, DownloadsClasses, isDownloadsClassModule, watchDownloadsHeader } from '../../shared/downloads-header';
 
@@ -11,10 +7,6 @@ declare global {
 	}
 }
 
-// Grabs webpack's require function from Steam's chunk loader and requires every
-// module definition, the same way Decky's and Millennium's webpack helpers do (Steam's
-// build doesn't expose the module cache, require.c). Cached by module id so later
-// calls only pick up modules from newly loaded chunks.
 let webpackRequire: any;
 const moduleExports = new Map<string, any>();
 
@@ -62,15 +54,12 @@ function mountButton(container: HTMLElement, cls: DownloadsClasses) {
 
 	let unsubscribe: (() => void) | undefined;
 	unsubscribe = subscribePending((pending) => {
-		// The Downloads page unmounted and took the button with it.
 		if (!container.isConnected) return void unsubscribe?.();
 		button.disabled = pending.length === 0;
 		button.textContent = pending.length > 0 ? `Download All (${pending.length})` : 'All Up to Date';
 	});
 }
 
-// The injector reads window.__downloadAll afterwards. It only becomes 'loaded' once
-// Steam's UI is ready, so the injector keeps retrying until then.
 if (window.__downloadAll !== 'loaded') {
 	if ((window as any).g_PopupManager && (window as any).webpackChunksteamui) {
 		configureDownloads(findModuleExport);

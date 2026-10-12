@@ -1,9 +1,3 @@
-# Installs the standalone Download All (no Millennium needed):
-#  - copies download-all.exe to %LOCALAPPDATA%\DownloadAll
-#  - enables Steam's remote debugging via the .cef-enable-remote-debugging marker file
-#  - adds a Startup shortcut so it runs at login, and starts it now
-# Steam must be restarted once afterwards for the marker file to take effect.
-
 $ErrorActionPreference = 'Stop'
 
 $source = @("$PSScriptRoot\download-all.exe", "$PSScriptRoot\dist\download-all.exe") | Where-Object { Test-Path $_ } | Select-Object -First 1

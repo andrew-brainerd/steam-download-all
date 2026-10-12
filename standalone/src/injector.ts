@@ -1,8 +1,3 @@
-// Background process for the standalone (no Millennium) build. Steam exposes a
-// Chrome DevTools endpoint on 127.0.0.1:8080 when remote debugging is enabled; this
-// polls it and injects the payload into SharedJSContext, re-injecting whenever Steam
-// or its UI restarts.
-
 import { appendFileSync, mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -11,7 +6,6 @@ declare const __PAYLOAD__: string;
 const DEVTOOLS = 'http://127.0.0.1:8080';
 const POLL_MS = 5000;
 
-// Built as a Windows GUI executable with no console, so log to a file.
 const logDir = join(process.env.LOCALAPPDATA ?? '.', 'DownloadAll');
 const logFile = join(logDir, 'download-all.log');
 mkdirSync(logDir, { recursive: true });
@@ -31,7 +25,6 @@ async function findSharedJSContext(): Promise<Target | undefined> {
 	return targets.find((t) => t.title === 'SharedJSContext' && t.webSocketDebuggerUrl);
 }
 
-// Opens a DevTools session, runs each expression in order, and returns the last value.
 function evaluate(wsUrl: string, expressions: string[]): Promise<unknown> {
 	return new Promise((resolve, reject) => {
 		const ws = new WebSocket(wsUrl);

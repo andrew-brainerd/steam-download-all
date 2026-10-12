@@ -1,8 +1,3 @@
-// Download logic shared by the Millennium (Windows) and Decky (SteamOS) plugins.
-// Reads Steam's own downloads store (the one backing the Downloads page) and only
-// calls SteamClient.Downloads. Each loader supplies its webpack export finder via
-// configureDownloads(), since both run in Steam's SharedJSContext.
-
 export type ExportFinder = (filter: (e: any) => boolean) => any;
 
 type DownloadItem = { appid: number };
@@ -24,7 +19,6 @@ export function configureDownloads(finder: ExportFinder) {
 
 function getStore(): DownloadsStore | undefined {
 	if (!findExport) throw new Error('[download-all] configureDownloads() was not called');
-	// m_DownloadItems is a MobX observable map, so match on shape rather than instanceof Map.
 	store ??= findExport(
 		(e: any) =>
 			typeof e === 'object' &&
@@ -36,14 +30,12 @@ function getStore(): DownloadsStore | undefined {
 	return store;
 }
 
-// The same items Steam lists under "Scheduled" and "Not queued" for this device.
 export function getPendingAppIds(): number[] {
 	const s = getStore();
 	if (!s) return [];
 	return [...s.ScheduledTransfers, ...s.UnqueuedTransfers].map((item) => item.appid);
 }
 
-// Display name for an appid, from Steam's global app store.
 export function getAppName(appid: number): string {
 	return (window as any).appStore?.GetAppOverviewByAppID?.(appid)?.display_name ?? `App ${appid}`;
 }
@@ -56,20 +48,15 @@ export function subscribePending(listener: (pending: number[]) => void): () => v
 		return () => {};
 	}
 	console.log('[download-all] Found Steam downloads store; pending:', getPendingAppIds());
-	// Steam invokes the callback immediately, then on every download list change.
 	const registration = s.RegisterForDownloadItemsUpdate(() => listener(getPendingAppIds()));
 	return () => registration.Unregister();
 }
 
-// The installed typings omit the client ID argument, but Steam's own Downloads page
-// always passes it ("0" is this device) and the calls do nothing without it.
 type DownloadsApi = {
 	ResumeAppUpdate(appId: number, clientId: string): void;
 	EnableAllDownloads(enable: boolean, clientId: string): void;
 };
 
-// Starts every scheduled or unqueued update. ResumeAppUpdate is the same call Steam
-// makes for its per-item "start now" button and for the Library's bulk update action.
 export function downloadAll(): number {
 	const s = getStore();
 	const pending = getPendingAppIds();

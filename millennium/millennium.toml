@@ -13,7 +13,6 @@ sources = ["backend/**/*.lua"]
 entry = "frontend/index.tsx"
 
 [compiler]
-# auto = detect the Millennium install and drop the built plugin into its plugins folder
 output_path = "auto"
 
 [dev]
