@@ -1,7 +1,7 @@
-import { definePlugin, DialogButton, Field, findClassModule } from 'millennium';
+import { definePlugin, DialogButton, Field, findClassModule, findModuleExport } from 'millennium';
 import { useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { downloadAll, subscribePending } from './downloads';
+import { configureDownloads, downloadAll, subscribePending } from '../../shared/downloads';
 
 const MAIN_WINDOW_NAME = 'SP Desktop_uid0';
 const MARKER_ATTR = 'data-download-all';
@@ -79,6 +79,8 @@ function onPopup(popup: any) {
 }
 
 export default definePlugin(() => {
+	configureDownloads(findModuleExport);
+
 	const popupManager = (window as any).g_PopupManager;
 	const existing = popupManager?.GetExistingPopup?.(MAIN_WINDOW_NAME);
 	if (existing) onPopup(existing);

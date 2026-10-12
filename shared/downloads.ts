@@ -1,8 +1,9 @@
-// Download logic. Reads Steam's own downloads store (the one backing the Downloads
-// page) and only calls SteamClient.Downloads, so it can be shared with a Decky
-// Loader (SteamOS) port, which runs in the same SharedJSContext.
+// Download logic shared by the Millennium (Windows) and Decky (SteamOS) plugins.
+// Reads Steam's own downloads store (the one backing the Downloads page) and only
+// calls SteamClient.Downloads. Each loader supplies its webpack export finder via
+// configureDownloads(), since both run in Steam's SharedJSContext.
 
-import { findModuleExport } from 'millennium';
+export type ExportFinder = (filter: (e: any) => boolean) => any;
 
 type DownloadItem = { appid: number };
 
@@ -15,10 +16,16 @@ type DownloadsStore = {
 };
 
 let store: DownloadsStore | undefined;
+let findExport: ExportFinder | undefined;
+
+export function configureDownloads(finder: ExportFinder) {
+	findExport = finder;
+}
 
 function getStore(): DownloadsStore | undefined {
+	if (!findExport) throw new Error('[download-all] configureDownloads() was not called');
 	// m_DownloadItems is a MobX observable map, so match on shape rather than instanceof Map.
-	store ??= findModuleExport(
+	store ??= findExport(
 		(e: any) =>
 			typeof e === 'object' &&
 			e !== null &&
@@ -34,6 +41,11 @@ export function getPendingAppIds(): number[] {
 	const s = getStore();
 	if (!s) return [];
 	return [...s.ScheduledTransfers, ...s.UnqueuedTransfers].map((item) => item.appid);
+}
+
+// Display name for an appid, from Steam's global app store.
+export function getAppName(appid: number): string {
+	return (window as any).appStore?.GetAppOverviewByAppID?.(appid)?.display_name ?? `App ${appid}`;
 }
 
 export function subscribePending(listener: (pending: number[]) => void): () => void {

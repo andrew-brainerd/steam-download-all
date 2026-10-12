@@ -1,0 +1,11 @@
+{
+  "name": "Download All",
+  "author": "Andrew Brainerd",
+  "flags": [],
+  "api_version": 1,
+  "publish": {
+    "tags": ["downloads", "updates"],
+    "description": "Start every scheduled or paused game update with one button.",
+    "image": ""
+  }
+}

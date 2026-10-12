@@ -1,14 +1,12 @@
 {
+  "name": "steam-download-all",
+  "private": true,
   "scripts": {
-    "dev": "starlight watch",
-    "build": "starlight pack",
-    "prepare": "starlight lsp"
-  },
-  "devDependencies": {
-    "@steambrew/starlight": "^1.1.3",
-    "@types/react": "19.1.1",
-    "@types/react-dom": "19.1.1",
-    "typescript": "^5.9.3"
+    "build:millennium": "pnpm --filter @download-all/millennium run build",
+    "dev:millennium": "pnpm --filter @download-all/millennium run dev",
+    "build:decky": "pnpm --filter @download-all/decky run build",
+    "deploy:deck": "pnpm --filter @download-all/decky run deploy",
+    "typecheck": "pnpm -r run typecheck"
   },
   "packageManager": "pnpm@11.22.0"
 }
