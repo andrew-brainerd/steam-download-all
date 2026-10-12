@@ -3,7 +3,7 @@
 // with a small self-contained equivalent.
 
 import { configureDownloads, downloadAll, subscribePending } from '../../shared/downloads';
-import { DownloadsClasses, isDownloadsClassModule, watchDownloadsHeader } from '../../shared/downloads-header';
+import { BUTTON_STYLE, DownloadsClasses, isDownloadsClassModule, watchDownloadsHeader } from '../../shared/downloads-header';
 
 declare global {
 	interface Window {
@@ -56,7 +56,7 @@ function mountButton(container: HTMLElement, cls: DownloadsClasses) {
 	const button = container.ownerDocument.createElement('button');
 	button.type = 'button';
 	button.className = `DialogButton ${cls.RemoveAllButton}`;
-	Object.assign(button.style, { minWidth: '0', margin: '0' });
+	Object.assign(button.style, BUTTON_STYLE);
 	button.addEventListener('click', () => downloadAll());
 	container.appendChild(button);
 

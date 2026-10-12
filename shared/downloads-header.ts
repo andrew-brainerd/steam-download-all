@@ -11,7 +11,19 @@ export type DownloadsClasses = { DownloadsPage: string; TopSection: string; Remo
 export const isDownloadsClassModule = (m: any): boolean =>
 	!!m && typeof m === 'object' && 'DownloadsPage' in m && 'TopSection' in m && 'RemoveAllButton' in m;
 
-type Mount = (container: HTMLElement, classes: DownloadsClasses) => void;
+// Steam only applies RemoveAllButton's padding, font and casing under :enabled, so the
+// disabled "All Up to Date" state falls back to uppercase with no padding. Pin the
+// enabled look for both states.
+export const BUTTON_STYLE = {
+	minWidth: '0',
+	margin: '0',
+	padding: '10px 24px',
+	fontSize: '16px',
+	lineHeight: '20px',
+	textTransform: 'none',
+} as const;
+
+type Mount =(container: HTMLElement, classes: DownloadsClasses) => void;
 
 function injectInto(doc: Document, getClasses: () => DownloadsClasses | undefined, mount: Mount) {
 	const classes = getClasses();

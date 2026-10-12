@@ -2,7 +2,7 @@ import { definePlugin, DialogButton, Field, findClassModule, findModuleExport } 
 import { useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { configureDownloads, downloadAll, subscribePending } from '../../shared/downloads';
-import { DownloadsClasses, isDownloadsClassModule, watchDownloadsHeader } from '../../shared/downloads-header';
+import { BUTTON_STYLE, DownloadsClasses, isDownloadsClassModule, watchDownloadsHeader } from '../../shared/downloads-header';
 
 const DownloadIcon = () => (
 	<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
@@ -20,7 +20,7 @@ const DownloadAllButton = ({ classes }: { classes: DownloadsClasses }) => {
 	return (
 		<DialogButton
 			className={classes.RemoveAllButton}
-			style={{ minWidth: 0, margin: 0 }}
+			style={BUTTON_STYLE}
 			disabled={count === 0}
 			onClick={() => downloadAll()}
 		>
