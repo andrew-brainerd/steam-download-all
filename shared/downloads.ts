@@ -76,7 +76,7 @@ export function downloadAll(): number {
 	console.log('[download-all] Download All clicked; pending:', pending);
 	if (!s || pending.length === 0) return 0;
 
-	const api = SteamClient.Downloads as unknown as DownloadsApi;
+	const api = (globalThis as any).SteamClient.Downloads as DownloadsApi;
 	const clientId = s.CurrentViewingRemoteClientID ?? '0';
 	for (const appid of pending) {
 		try {

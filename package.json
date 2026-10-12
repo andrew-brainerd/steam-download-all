@@ -6,6 +6,8 @@
     "dev:millennium": "pnpm --filter @download-all/millennium run dev",
     "build:decky": "pnpm --filter @download-all/decky run build",
     "deploy:deck": "pnpm --filter @download-all/decky run deploy",
+    "build:standalone": "pnpm --filter @download-all/standalone run build",
+    "start:standalone": "pnpm --filter @download-all/standalone run start",
     "typecheck": "pnpm -r run typecheck"
   },
   "packageManager": "pnpm@11.22.0"

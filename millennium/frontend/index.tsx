@@ -2,12 +2,7 @@ import { definePlugin, DialogButton, Field, findClassModule, findModuleExport } 
 import { useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { configureDownloads, downloadAll, subscribePending } from '../../shared/downloads';
-
-const MAIN_WINDOW_NAME = 'SP Desktop_uid0';
-const MARKER_ATTR = 'data-download-all';
-
-// Steam's CSS class names are hashed per build, so look them up by key.
-const downloadsClasses = () => findClassModule((m) => m.DownloadsPage && m.TopSection && m.RemoveAllButton) as any;
+import { DownloadsClasses, isDownloadsClassModule, watchDownloadsHeader } from '../../shared/downloads-header';
 
 const DownloadIcon = () => (
 	<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
@@ -15,17 +10,16 @@ const DownloadIcon = () => (
 	</svg>
 );
 
-const DownloadAllButton = () => {
+const DownloadAllButton = ({ classes }: { classes: DownloadsClasses }) => {
 	const [pending, setPending] = useState<number[]>([]);
 
 	useEffect(() => subscribePending(setPending), []);
 
-	const classes = downloadsClasses();
 	const count = pending.length;
 
 	return (
 		<DialogButton
-			className={classes?.RemoveAllButton}
+			className={classes.RemoveAllButton}
 			style={{ minWidth: 0, margin: 0 }}
 			disabled={count === 0}
 			onClick={() => downloadAll()}
@@ -35,56 +29,12 @@ const DownloadAllButton = () => {
 	);
 };
 
-function injectInto(doc: Document) {
-	const classes = downloadsClasses();
-	if (!classes) return;
-
-	const topSection = doc.querySelector(`.${classes.DownloadsPage} .${classes.TopSection}`);
-	if (!topSection || topSection.querySelector(`[${MARKER_ATTR}]`)) return;
-
-	const container = doc.createElement('div');
-	container.setAttribute(MARKER_ATTR, '');
-	Object.assign(container.style, { position: 'absolute', right: '16px', bottom: '16px', zIndex: '5' });
-	topSection.appendChild(container);
-	createRoot(container).render(<DownloadAllButton />);
-}
-
-// The Downloads page is mounted and unmounted as the user navigates, so watch the
-// main window and re-inject whenever the header appears without our button.
-function watchWindow(win: Window) {
-	const doc = win?.document;
-	if (!doc?.body || (doc.body as any).__downloadAllWatched) return;
-	(doc.body as any).__downloadAllWatched = true;
-
-	let scheduled = false;
-	new MutationObserver(() => {
-		if (scheduled) return;
-		scheduled = true;
-		win.requestAnimationFrame(() => {
-			scheduled = false;
-			injectInto(doc);
-		});
-	}).observe(doc.body, { childList: true, subtree: true });
-	injectInto(doc);
-}
-
-function onPopup(popup: any) {
-	if (popup?.m_strName !== MAIN_WINDOW_NAME) return;
-	const win = popup.window ?? popup.m_popup;
-	if (win?.document?.body) {
-		watchWindow(win);
-	} else {
-		win?.addEventListener?.('load', () => watchWindow(win), { once: true });
-	}
-}
-
 export default definePlugin(() => {
 	configureDownloads(findModuleExport);
-
-	const popupManager = (window as any).g_PopupManager;
-	const existing = popupManager?.GetExistingPopup?.(MAIN_WINDOW_NAME);
-	if (existing) onPopup(existing);
-	popupManager?.AddPopupCreatedCallback?.(onPopup);
+	watchDownloadsHeader(
+		() => findClassModule(isDownloadsClassModule) as DownloadsClasses | undefined,
+		(container, classes) => createRoot(container).render(<DownloadAllButton classes={classes} />),
+	);
 
 	return {
 		title: 'Download All',

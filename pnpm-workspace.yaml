@@ -1,3 +1,7 @@
 packages:
   - millennium
   - decky
+  - standalone
+
+allowBuilds:
+  esbuild: true

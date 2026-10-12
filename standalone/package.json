@@ -1,0 +1,17 @@
+{
+  "name": "@download-all/standalone",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "start": "node scripts/build.mjs --no-exe && node dist/injector.cjs",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "esbuild": "^0.28.2",
+    "postject": "1.0.0-alpha.6",
+    "typescript": "^5.9.3"
+  }
+}
