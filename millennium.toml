@@ -1,0 +1,21 @@
+[plugin]
+id = "dev.brainerd.download-all"
+name = "Download All"
+version = "0.1.0"
+author = "drwb3"
+description = "Adds a Download All button to the Steam Downloads page that starts every scheduled or paused update."
+
+[backend]
+entry = "backend/main.lua"
+sources = ["backend/**/*.lua"]
+
+[frontend]
+entry = "frontend/index.tsx"
+
+[compiler]
+# auto = detect the Millennium install and drop the built plugin into its plugins folder
+output_path = "auto"
+
+[dev]
+auto_restart = true
+reload_steamui_when = "both"
