@@ -11,14 +11,26 @@ declare global {
 	}
 }
 
-// Grabs webpack's require function from Steam's chunk loader, the same way Decky's
-// and Millennium's webpack helpers do.
+// Grabs webpack's require function from Steam's chunk loader and requires every
+// module definition, the same way Decky's and Millennium's webpack helpers do (Steam's
+// build doesn't expose the module cache, require.c). Cached by module id so later
+// calls only pick up modules from newly loaded chunks.
+let webpackRequire: any;
+const moduleExports = new Map<string, any>();
+
 function getModuleExports(): any[] {
-	let webpackRequire: any;
-	(window as any).webpackChunksteamui.push([[Symbol('download-all')], {}, (r: any) => (webpackRequire = r)]);
-	return Object.values(webpackRequire?.c ?? {})
-		.map((m: any) => m?.exports)
-		.filter(Boolean);
+	if (!webpackRequire) {
+		(window as any).webpackChunksteamui.push([[Symbol('download-all')], {}, (r: any) => (webpackRequire = r)]);
+	}
+	for (const id of Object.keys(webpackRequire?.m ?? {})) {
+		if (moduleExports.has(id)) continue;
+		try {
+			moduleExports.set(id, webpackRequire(id));
+		} catch {
+			moduleExports.set(id, undefined);
+		}
+	}
+	return [...moduleExports.values()].filter(Boolean);
 }
 
 function findModuleExport(filter: (e: any) => boolean): any {

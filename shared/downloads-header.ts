@@ -17,7 +17,9 @@ function injectInto(doc: Document, getClasses: () => DownloadsClasses | undefine
 	const classes = getClasses();
 	if (!classes) return;
 
-	const topSection = doc.querySelector(`.${classes.DownloadsPage} .${classes.TopSection}`);
+	// Values can hold several names (Millennium appends readable ones, e.g. "_1bq4x9 DownloadsPage").
+	const selector = (value: string) => `.${value.split(' ')[0]}`;
+	const topSection = doc.querySelector(`${selector(classes.DownloadsPage)} ${selector(classes.TopSection)}`);
 	if (!topSection || topSection.querySelector(`[${MARKER_ATTR}]`)) return;
 
 	const container = doc.createElement('div');

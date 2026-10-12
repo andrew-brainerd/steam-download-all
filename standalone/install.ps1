@@ -15,7 +15,8 @@ if (-not $steamPath -or -not (Test-Path $steamPath)) { throw 'Steam installation
 $installDir = Join-Path $env:LOCALAPPDATA 'DownloadAll'
 $exe = Join-Path $installDir 'download-all.exe'
 
-Get-Process download-all -ErrorAction SilentlyContinue | Stop-Process -Force
+$running = Get-Process download-all -ErrorAction SilentlyContinue
+if ($running) { $running | Stop-Process -Force; $running | Wait-Process -Timeout 10 }
 New-Item -ItemType Directory -Force $installDir | Out-Null
 Copy-Item $source $exe -Force
 
