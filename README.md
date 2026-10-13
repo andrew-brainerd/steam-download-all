@@ -93,6 +93,10 @@ installer/    Windows installer (Tauri): Millennium-style UI, installs/removes e
 | `pnpm deploy:deck` | Build and deploy the Decky plugin to a Steam Deck over SSH |
 | `pnpm typecheck` | Type-check all three packages |
 
+### Releasing
+
+Bump `version` in `installer/package.json`, commit, then push a matching tag (`git tag v0.1.0 && git push origin v0.1.0`). `.github/workflows/release.yml` builds the installer on a Windows runner, uploads it plus a `latest.json` manifest to `s3://brainerd/apps/download-all/`, and attaches the exe to a GitHub Release. The download page at [brainerd.dev/apps/download-all](https://brainerd.dev/apps/download-all) reads that manifest, and its button counts downloads through brainerd-api (`/apps/download-all/download`) before redirecting to S3. The workflow needs the `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` repository secrets (the same ones Condensate uses).
+
 Requirements: Node 24+, pnpm 11. Deploying to a Deck needs `ssh` and `scp`, which Git for Windows includes.
 
 These are Steam's internal APIs, not a supported interface, so a Steam client update can break them. If the button stops appearing or stops working, the store lookup (`shared/downloads.ts`) and the class lookup (`isDownloadsClassModule`) are the first things to check.

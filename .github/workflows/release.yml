@@ -1,0 +1,100 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*.*.*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: installer/src-tauri
+
+      - name: Resolve version
+        id: version
+        run: |
+          VERSION=$(node -p "require('./installer/package.json').version")
+          if [[ "${GITHUB_REF_TYPE}" == "tag" && "${GITHUB_REF_NAME}" != "v${VERSION}" ]]; then
+            echo "Tag ${GITHUB_REF_NAME} does not match installer/package.json version ${VERSION}" >&2
+            exit 1
+          fi
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm build:installer
+
+      - name: Stage installer
+        id: stage
+        run: |
+          FILE="download-all-installer-${{ steps.version.outputs.version }}.exe"
+          cp installer/src-tauri/target/release/download-all-installer.exe "$FILE"
+          echo "file=${FILE}" >> "$GITHUB_OUTPUT"
+          echo "size=$(stat -c %s "$FILE")" >> "$GITHUB_OUTPUT"
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Upload to S3 and publish the download manifest
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          FILE: ${{ steps.stage.outputs.file }}
+          SIZE: ${{ steps.stage.outputs.size }}
+        run: |
+          BUCKET=brainerd
+          PREFIX="apps/download-all/${VERSION}"
+          export BASE_URL="https://brainerd.s3.us-east-1.amazonaws.com/${PREFIX}"
+
+          aws s3 cp "$FILE" "s3://${BUCKET}/${PREFIX}/${FILE}" \
+            --content-type application/vnd.microsoft.portable-executable \
+            --cache-control "public, max-age=31536000, immutable" --only-show-errors
+
+          node -e '
+            const manifest = {
+              version: process.env.VERSION,
+              releasedAt: new Date().toISOString().slice(0, 10),
+              notes: `https://github.com/${process.env.GITHUB_REPOSITORY}/releases/tag/v${process.env.VERSION}`,
+              downloads: [{
+                platform: "windows",
+                label: "Windows 10 & 11",
+                url: `${process.env.BASE_URL}/${process.env.FILE}`,
+                sizeBytes: Number(process.env.SIZE)
+              }]
+            };
+            require("fs").writeFileSync("latest.json", JSON.stringify(manifest, null, 2));
+          '
+          cat latest.json
+
+          aws s3 cp latest.json "s3://${BUCKET}/${PREFIX}/latest.json" \
+            --content-type application/json --cache-control "no-cache" --only-show-errors
+          aws s3 cp latest.json "s3://${BUCKET}/apps/download-all/latest.json" \
+            --content-type application/json --cache-control "no-cache" --only-show-errors
+
+      - name: GitHub Release
+        if: github.ref_type == 'tag'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "${GITHUB_REF_NAME}" "${{ steps.stage.outputs.file }}" --title "${GITHUB_REF_NAME}" --generate-notes
