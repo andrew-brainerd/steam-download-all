@@ -14,6 +14,17 @@ There are three versions, all built on the same core code:
 
 ## Install
 
+### Windows installer (easiest)
+
+Run `download-all-installer.exe` and choose:
+
+- **With Millennium** (recommended): installs the plugin and turns it on. If Millennium isn't installed, the installer downloads its latest release from GitHub, checks it against the release's published SHA-256, and installs it first.
+- **Standalone**: no Millennium. Installs the background app and turns on Steam's DevTools port (see the warning below).
+
+The same installer can **Remove** Download All (either version) and, if you select it, Millennium's program files. Your Millennium settings, themes and other plugins are kept. Steam is closed with `steam.exe -shutdown` (force-closed only if it hasn't exited after a minute) and reopened when the installer finishes. Picking one version removes the other, so you never run both.
+
+Build it with `pnpm build:installer`. That builds the Millennium plugin and standalone exe, embeds both, and writes `installer/src-tauri/target/release/download-all-installer.exe` (~95 MB, mostly the standalone app). The exe isn't code-signed, so SmartScreen may warn.
+
 ### Millennium plugin (Windows)
 
 1. Install [Millennium](https://docs.steambrew.app/users/installing).
@@ -67,6 +78,7 @@ shared/       Core logic shared by all three builds
 millennium/   Millennium plugin (Starlight toolchain)
 standalone/   DevTools injector + payload, packaged as a Node single-executable app
 decky/        Decky Loader plugin (Rollup)
+installer/    Windows installer (Tauri): Millennium-style UI, installs/removes either version and Millennium
 ```
 
 | Command | What it does |
@@ -74,6 +86,8 @@ decky/        Decky Loader plugin (Rollup)
 | `pnpm build:millennium` | Build and install the Millennium plugin into Steam |
 | `pnpm dev:millennium` | Rebuild on change, hot-reload Steam, stream plugin logs |
 | `pnpm build:standalone` | Build `standalone/dist/download-all.exe` |
+| `pnpm build:installer` | Build the Windows installer with both versions embedded |
+| `pnpm dev:installer` | Run the installer in dev mode (hot-reloads the UI) |
 | `pnpm start:standalone` | Run the injector in the terminal (logs to stdout) |
 | `pnpm build:decky` | Build the Decky plugin into `decky/dist` |
 | `pnpm deploy:deck` | Build and deploy the Decky plugin to a Steam Deck over SSH |

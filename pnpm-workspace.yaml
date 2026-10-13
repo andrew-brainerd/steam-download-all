@@ -2,6 +2,8 @@ packages:
   - millennium
   - decky
   - standalone
+  - installer
 
 allowBuilds:
   esbuild: true
+  '@tauri-apps/cli': true

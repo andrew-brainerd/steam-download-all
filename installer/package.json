@@ -1,0 +1,24 @@
+{
+  "name": "@download-all/installer",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "payload": "node scripts/payload.mjs",
+    "dev": "node scripts/payload.mjs && tauri dev",
+    "build": "node scripts/payload.mjs && tauri build --no-bundle",
+    "typecheck": "tsc --noEmit",
+    "icons": "tauri icon icon.svg",
+    "tauri": "tauri"
+  },
+  "dependencies": {
+    "@fontsource/inter": "^5.2.5",
+    "@tauri-apps/api": "~2.10.1",
+    "@tauri-apps/plugin-opener": "~2.5.3"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "~2.10.0",
+    "typescript": "^5.9.3",
+    "vite": "^6.0.0"
+  }
+}
