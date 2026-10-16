@@ -1,6 +1,6 @@
 [package]
 name = "download-all-installer"
-version = "0.1.0"
+version = "1.0.0"
 description = "Installer for Steam Download All"
 authors = ["Andrew Brainerd"]
 edition = "2021"

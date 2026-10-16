@@ -1,7 +1,7 @@
 [plugin]
 id = "dev.brainerd.download-all"
 name = "Download All"
-version = "0.1.0"
+version = "1.0.0"
 author = "drwb3"
 description = "Adds a Download All button to the Steam Downloads page that starts every scheduled or paused update."
 
