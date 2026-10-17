@@ -4,6 +4,8 @@ import { BUTTON_STYLE, DownloadsClasses, isDownloadsClassModule, watchDownloadsH
 declare global {
 	interface Window {
 		__downloadAll?: 'loaded' | 'steam-ui-not-ready';
+		__downloadAllUpdate?: string;
+		__downloadAllUpdateRequested?: boolean;
 	}
 }
 
@@ -44,7 +46,31 @@ function findModuleExport(filter: (e: any) => boolean): any {
 let classes: DownloadsClasses | undefined;
 const getClasses = () => (classes ??= findModuleExport(isDownloadsClassModule));
 
+function mountUpdateButton(container: HTMLElement, cls: DownloadsClasses) {
+	const button = container.ownerDocument.createElement('button');
+	button.type = 'button';
+	button.className = `DialogButton ${cls.RemoveAllButton}`;
+	Object.assign(button.style, BUTTON_STYLE, { display: 'none' });
+	button.addEventListener('click', () => {
+		window.__downloadAllUpdateRequested = true;
+		button.disabled = true;
+		button.textContent = 'Updating…';
+	});
+	container.appendChild(button);
+
+	const refresh = () => {
+		if (!container.isConnected) return clearInterval(timer);
+		const version = window.__downloadAllUpdate;
+		if (!version || window.__downloadAllUpdateRequested) return;
+		button.textContent = `Update to ${version}`;
+		button.style.display = '';
+	};
+	const timer = setInterval(refresh, 2000);
+	refresh();
+}
+
 function mountButton(container: HTMLElement, cls: DownloadsClasses) {
+	mountUpdateButton(container, cls);
 	const button = container.ownerDocument.createElement('button');
 	button.type = 'button';
 	button.className = `DialogButton ${cls.RemoveAllButton}`;

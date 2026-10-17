@@ -59,7 +59,7 @@ function injectInto(doc: Document, getClasses: () => DownloadsClasses | undefine
 
 	const container = doc.createElement('div');
 	container.setAttribute(MARKER_ATTR, '');
-	Object.assign(container.style, { position: 'absolute', zIndex: '5' });
+	Object.assign(container.style, { position: 'absolute', zIndex: '5', display: 'flex', gap: '8px', alignItems: 'center' });
 	topSection.appendChild(container);
 	mount(container, classes);
 	const gear = classes.SettingsButton ? topSection.querySelector(selector(classes.SettingsButton)) : null;

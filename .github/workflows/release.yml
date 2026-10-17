@@ -38,6 +38,11 @@ jobs:
             echo "Tag ${GITHUB_REF_NAME} does not match installer/package.json version ${VERSION}" >&2
             exit 1
           fi
+          SHARED=$(sed -n "s/.*VERSION = '\(.*\)'.*/\1/p" shared/version.ts)
+          if [[ "${SHARED}" != "${VERSION}" ]]; then
+            echo "shared/version.ts (${SHARED}) does not match installer/package.json (${VERSION}); run pnpm set-version" >&2
+            exit 1
+          fi
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
 
       - run: pnpm install --frozen-lockfile
@@ -51,6 +56,13 @@ jobs:
           cp installer/src-tauri/target/release/download-all-installer.exe "$FILE"
           echo "file=${FILE}" >> "$GITHUB_OUTPUT"
           echo "size=$(stat -c %s "$FILE")" >> "$GITHUB_OUTPUT"
+          cp installer/src-tauri/payload/dev.brainerd.download-all.star dev.brainerd.download-all.star
+          cp installer/src-tauri/payload/download-all.exe download-all.exe
+
+      - name: Sign update files
+        env:
+          UPDATE_SIGNING_KEY: ${{ secrets.UPDATE_SIGNING_KEY }}
+        run: node scripts/sign.mjs dev.brainerd.download-all.star download-all.exe > signatures.json
 
       - uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -71,8 +83,15 @@ jobs:
           aws s3 cp "$FILE" "s3://${BUCKET}/${PREFIX}/${FILE}" \
             --content-type application/vnd.microsoft.portable-executable \
             --cache-control "public, max-age=31536000, immutable" --only-show-errors
+          aws s3 cp download-all.exe "s3://${BUCKET}/${PREFIX}/download-all.exe" \
+            --content-type application/vnd.microsoft.portable-executable \
+            --cache-control "public, max-age=31536000, immutable" --only-show-errors
+          aws s3 cp dev.brainerd.download-all.star "s3://${BUCKET}/${PREFIX}/dev.brainerd.download-all.star" \
+            --content-type application/octet-stream \
+            --cache-control "public, max-age=31536000, immutable" --only-show-errors
 
           node -e '
+            const signatures = JSON.parse(require("fs").readFileSync("signatures.json", "utf8"));
             const manifest = {
               version: process.env.VERSION,
               releasedAt: new Date().toISOString().slice(0, 10),
@@ -82,7 +101,17 @@ jobs:
                 label: "Windows 10 & 11",
                 url: `${process.env.BASE_URL}/${process.env.FILE}`,
                 sizeBytes: Number(process.env.SIZE)
-              }]
+              }],
+              updates: {
+                millennium: {
+                  url: `${process.env.BASE_URL}/dev.brainerd.download-all.star`,
+                  signature: signatures["dev.brainerd.download-all.star"]
+                },
+                standalone: {
+                  url: `${process.env.BASE_URL}/download-all.exe`,
+                  signature: signatures["download-all.exe"]
+                }
+              }
             };
             require("fs").writeFileSync("latest.json", JSON.stringify(manifest, null, 2));
           '

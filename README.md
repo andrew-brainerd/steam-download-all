@@ -95,7 +95,18 @@ installer/    Windows installer (Tauri): Millennium-style UI, installs/removes e
 
 ### Releasing
 
-Bump `version` in `installer/package.json`, commit, then push a matching tag (`git tag v0.1.0 && git push origin v0.1.0`). `.github/workflows/release.yml` builds the installer on a Windows runner, uploads it plus a `latest.json` manifest to `s3://brainerd/apps/download-all/`, and attaches the exe to a GitHub Release. The download page at [brainerd.dev/apps/download-all](https://brainerd.dev/apps/download-all) reads that manifest, and its button counts downloads through brainerd-api (`/apps/download-all/download`) before redirecting to S3. The workflow needs the `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` repository secrets (the same ones Condensate uses).
+Run `pnpm set-version <x.y.z>` (it updates all eight version fields, including `shared/version.ts`, which both Windows builds compare updates against), commit, then push a matching tag (`git tag v1.0.0 && git push origin v1.0.0`). `.github/workflows/release.yml` builds everything on a Windows runner, signs the update files, uploads the installer, the plugin `.star`, the standalone exe and a `latest.json` manifest to `s3://brainerd/apps/download-all/<version>/`, and attaches the installer to a GitHub Release. The download page at [brainerd.dev/apps/download-all](https://brainerd.dev/apps/download-all) reads that manifest, and its button counts downloads through brainerd-api (`/apps/download-all/download`) before redirecting to S3.
+
+Repository secrets: `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` (the same ones Condensate uses), and `UPDATE_SIGNING_KEY` (the Ed25519 private key, PEM). The workflow refuses to sign with a key that doesn't match `UPDATE_PUBLIC_KEY` in `shared/updates.ts`.
+
+### Updates
+
+Both Windows versions check `latest.json` 30 seconds after starting and every 6 hours. When a newer version is published, an **Update to x.y.z** button appears next to Download All. Nothing installs until it's clicked.
+
+- **Millennium plugin**: the Lua backend downloads the new `.star` (Steam's UI can't fetch from S3 because the bucket sends no CORS headers), the frontend verifies its Ed25519 signature with `tweetnacl`, and only then does the backend move it into place; Steam restarts to load it.
+- **Standalone**: the background exe downloads and verifies the new exe with Node's crypto, stages it, and on click swaps itself (a running exe can be renamed), starts the new one and restarts Steam so the new button code loads.
+
+The private signing key lives outside the repo (`~/.download-all/update-signing-key.pem` on the machine that generated it) and in the `UPDATE_SIGNING_KEY` secret. Keep a backup: losing it means existing installs can't verify future updates, and they'd have to reinstall from the website after the key is replaced in `shared/updates.ts`.
 
 Requirements: Node 24+, pnpm 11. Deploying to a Deck needs `ssh` and `scp`, which Git for Windows includes.
 

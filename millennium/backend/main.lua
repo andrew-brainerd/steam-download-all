@@ -1,6 +1,8 @@
 local logger     = require("logger")
 local millennium = require("millennium")
 
+require("updates")
+
 local function on_load()
     logger:info("Loaded with Millennium version " .. millennium.version())
     millennium.ready()

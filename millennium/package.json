@@ -12,5 +12,8 @@
     "typescript": "^5.9.3"
   },
   "name": "@download-all/millennium",
-  "private": true
+  "private": true,
+  "dependencies": {
+    "tweetnacl": "^1.0.3"
+  }
 }

@@ -10,7 +10,12 @@
     "start:standalone": "pnpm --filter @download-all/standalone run start",
     "build:installer": "pnpm --filter @download-all/installer run build",
     "dev:installer": "pnpm --filter @download-all/installer run dev",
-    "typecheck": "pnpm -r run typecheck"
+    "typecheck": "pnpm -r run typecheck",
+    "test": "vitest run --dir shared",
+    "set-version": "node scripts/set-version.mjs"
   },
-  "packageManager": "pnpm@11.22.0"
+  "packageManager": "pnpm@11.22.0",
+  "devDependencies": {
+    "vitest": "^3.2.7"
+  }
 }
